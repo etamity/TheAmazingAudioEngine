@@ -23,6 +23,10 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #import <Foundation/Foundation.h>
 #import "TheAmazingAudioEngine.h"
 
@@ -57,7 +61,10 @@ extern NSString * kAERecorderErrorKey;
 - (id)initWithAudioController:(AEAudioController*)audioController;
 
 /*!
- * Start recording
+ * Prepare and begin recording
+ *
+ *  Prepare to record, then start recording immediately, without
+ *  needing to call AERecorderStartRecording
  *
  * @param path The path to record to
  * @param fileType The kind of file to create
@@ -65,6 +72,34 @@ extern NSString * kAERecorderErrorKey;
  * @return YES on success, NO on failure.
  */
 - (BOOL)beginRecordingToFileAtPath:(NSString*)path fileType:(AudioFileTypeID)fileType error:(NSError**)error;
+
+/*!
+ * Prepare to record
+ *
+ *  Prepare recording and set up internal data structures.
+ *  When this method returns, the recorder is ready to record.
+ *
+ *  Start recording by calling AERecorderStartRecording. This allows
+ *  you to record synchronously with other audio events.
+ *
+ * @param path The path to record to
+ * @param fileType The kind of file to create
+ * @param error The error, if not NULL and if an error occurs
+ * @return YES on success, NO on failure.
+ */
+- (BOOL)prepareRecordingToFileAtPath:(NSString*)path fileType:(AudioFileTypeID)fileType error:(NSError**)error;
+
+/*!
+ * Start recording
+ *
+ *  If you prepared recording by calling @link prepareRecordingToFileAtPath:fileType:error: @endlink,
+ *  call this method to actually begin recording.
+ *
+ *  This is thread-safe and can be used from the audio thread.
+ *
+ * @param recorder The recorder
+ */
+void AERecorderStartRecording(AERecorder* recorder);
 
 /*!
  * Finish recording and close file
@@ -75,4 +110,14 @@ extern NSString * kAERecorderErrorKey;
  * The path
  */
 @property (nonatomic, retain, readonly) NSString *path;
+
+/*!
+ * Current recorded time in seconds
+ */
+@property (nonatomic, readonly) double currentTime;
+
 @end
+
+#ifdef __cplusplus
+}
+#endif

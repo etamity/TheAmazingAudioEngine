@@ -6,6 +6,10 @@
 //  Copyright (c) 2013 A Tasty Pixel. All rights reserved.
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #import <Foundation/Foundation.h>
 #import "AEAudioController.h"
 
@@ -68,6 +72,11 @@ typedef void (^AEBlockSchedulerResponseBlock)();
  * Utility: Create a timestamp in host ticks the given number of seconds in the future
  */
 + (uint64_t)timestampWithSecondsFromNow:(NSTimeInterval)seconds;
+
+/*!
+ * Utility: Create a timestamp in host ticks the given number of seconds from a timestamp
+ */
++ (uint64_t)timestampWithSeconds:(NSTimeInterval)seconds fromTimestamp:(uint64_t)timeStamp;
 
 /*!
  * Utility: Determine the number of seconds until a given timestamp
@@ -163,3 +172,7 @@ typedef void (^AEBlockSchedulerResponseBlock)();
 - (void)cancelScheduleWithIdentifier:(id<NSCopying>)identifier;
 
 @end
+
+#ifdef __cplusplus
+}
+#endif

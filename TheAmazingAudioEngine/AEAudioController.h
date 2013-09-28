@@ -23,6 +23,10 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #import <AudioToolbox/AudioToolbox.h>
 #import <AudioUnit/AudioUnit.h>
 
@@ -44,9 +48,9 @@
  *  errors. Objects that use the graph directly (such as creating audio units)
  *  should re-initialise the audio units.
  */
-extern NSString * AEAudioControllerSessionInterruptionBeganNotification;
-extern NSString * AEAudioControllerSessionInterruptionEndedNotification;
-extern NSString * AEAudioControllerDidRecreateGraphNotification;
+extern NSString * const AEAudioControllerSessionInterruptionBeganNotification;
+extern NSString * const AEAudioControllerSessionInterruptionEndedNotification;
+extern NSString * const AEAudioControllerDidRecreateGraphNotification;
 
 /*!
  * @enum AEInputMode
@@ -1098,6 +1102,14 @@ NSTimeInterval AEConvertFramesToSeconds(AEAudioController *audioController, long
 @property (nonatomic, assign) BOOL muteOutput;
 
 /*!
+ * Access the master output volume
+ *
+ *  Note that this value affects the output of the audio engine; it doesn't modify
+ *  the hardware volume setting.
+ */
+@property (nonatomic, assign) float masterOutputVolume;
+
+/*!
  * Enable audio input from Bluetooth devices
  *
  *  Default is NO.
@@ -1293,3 +1305,6 @@ NSTimeInterval AEAudioControllerOutputLatency(AEAudioController *controller);
 
 @end
 
+#ifdef __cplusplus
+}
+#endif

@@ -41,7 +41,7 @@ NSString * kAERecorderErrorKey = @"error";
 @end
 
 @implementation AERecorder
-@synthesize mixer = _mixer, writer = _writer;
+@synthesize mixer = _mixer, writer = _writer, currentTime = _currentTime;
 @dynamic path;
 
 + (BOOL)AACEncodingAvailable {
@@ -67,10 +67,20 @@ NSString * kAERecorderErrorKey = @"error";
     [super dealloc];
 }
 
-- (BOOL)beginRecordingToFileAtPath:(NSString*)path fileType:(AudioFileTypeID)fileType error:(NSError**)error {
-    BOOL result = [_writer beginWritingToFileAtPath:path fileType:fileType error:error];
-    if ( result ) _recording = YES;
+-(BOOL)beginRecordingToFileAtPath:(NSString *)path fileType:(AudioFileTypeID)fileType error:(NSError **)error {
+    BOOL result = [self prepareRecordingToFileAtPath:path fileType:fileType error:error];
+    _recording = YES;
     return result;
+}
+
+- (BOOL)prepareRecordingToFileAtPath:(NSString*)path fileType:(AudioFileTypeID)fileType error:(NSError**)error {
+    _currentTime = 0.0;
+    BOOL result = [_writer beginWritingToFileAtPath:path fileType:fileType error:error];
+    return result;
+}
+
+void AERecorderStartRecording(AERecorder* THIS) {
+    THIS->_recording = YES;
 }
 
 - (void)finishRecording {
@@ -111,6 +121,8 @@ static void audioCallback(id                        receiver,
         THIS->_buffer->mBuffers[i].mData = NULL;
         THIS->_buffer->mBuffers[i].mDataByteSize = 0;
     }
+    
+    THIS->_currentTime += AEConvertFramesToSeconds(audioController, frames);
     
     AEMixerBufferDequeue(THIS->_mixer, THIS->_buffer, &bufferLength, NULL);
     

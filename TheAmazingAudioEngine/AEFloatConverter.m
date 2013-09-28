@@ -25,7 +25,7 @@
 
 #import "AEFloatConverter.h"
 
-#define checkResult(result,operation) (_checkResult((result),(operation),strrchr(__FILE__, '/'),__LINE__))
+#define checkResult(result,operation) (_checkResult((result),(operation),strrchr(__FILE__, '/')+1,__LINE__))
 static inline BOOL _checkResult(OSStatus result, const char *operation, const char* file, int line) {
     if ( result != noErr ) {
         NSLog(@"%s:%d: %s result %d %08X %4.4s", file, line, operation, (int)result, (int)result, (char*)&result);
@@ -144,14 +144,15 @@ BOOL AEFloatConverterToFloatBufferList(AEFloatConverter* converter, AudioBufferL
 BOOL AEFloatConverterFromFloat(AEFloatConverter* THIS, float * const * sourceBuffers, AudioBufferList *targetBuffer, UInt32 frames) {
     if ( frames == 0 ) return YES;
     
-    for ( int i=0; i<targetBuffer->mNumberBuffers; i++ ) {
-        targetBuffer->mBuffers[i].mDataByteSize = frames * THIS->_sourceAudioDescription.mBytesPerFrame;
-    }
-    
     if ( THIS->_fromFloatConverter ) {
         for ( int i=0; i<THIS->_scratchFloatBufferList->mNumberBuffers; i++ ) {
             THIS->_scratchFloatBufferList->mBuffers[i].mData = sourceBuffers[i];
             THIS->_scratchFloatBufferList->mBuffers[i].mDataByteSize = frames * sizeof(float);
+        }
+        
+        UInt32 priorDataByteSize = targetBuffer->mBuffers[0].mDataByteSize;
+        for ( int i=0; i<targetBuffer->mNumberBuffers; i++ ) {
+            targetBuffer->mBuffers[i].mDataByteSize = frames * THIS->_sourceAudioDescription.mBytesPerFrame;
         }
         
         OSStatus result = AudioConverterFillComplexBuffer(THIS->_fromFloatConverter,
@@ -160,6 +161,11 @@ BOOL AEFloatConverterFromFloat(AEFloatConverter* THIS, float * const * sourceBuf
                                                           &frames,
                                                           targetBuffer,
                                                           NULL);
+        
+        for ( int i=0; i<targetBuffer->mNumberBuffers; i++ ) {
+            targetBuffer->mBuffers[i].mDataByteSize = priorDataByteSize;
+        }
+        
         if ( !checkResult(result, "AudioConverterConvertComplexBuffer") ) {
             return NO;
         }
