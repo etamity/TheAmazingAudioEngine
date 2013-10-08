@@ -162,12 +162,14 @@ static inline BOOL _checkResult(OSStatus result, const char *operation, const ch
         checkResult(result=AudioUnitGetProperty(_audioUnit, kAudioUnitProperty_CurrentPlayTime,
                                                              kAudioUnitScope_Global, 0, &curTime, &valsz),
                                                              "AudioUnitGetProperty - kAudioUnitProperty_CurrentPlayTime");
-    
-        _playhead = (unsigned long)curTime.mSampleTime;
+
+        // correct for the difference between the input and playback rate
+        double sampleRateRatio = (double)_audioDescription.mSampleRate / (double)_audioControllerRef.audioDescription.mSampleRate;
+        _playhead = (unsigned long)curTime.mSampleTime * sampleRateRatio;
         _playhead += _locatehead;
     }
 
-    if(_audioDescription.mSampleRate > 1.0f) {
+    if (_audioDescription.mSampleRate > 1.0f && _audioControllerRef.audioDescription.mSampleRate > 1.0f) {
         return (double)_playhead / (double)_audioDescription.mSampleRate;
     }
 
