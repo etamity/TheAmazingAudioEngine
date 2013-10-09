@@ -163,13 +163,18 @@ static inline BOOL _checkResult(OSStatus result, const char *operation, const ch
                                                              kAudioUnitScope_Global, 0, &curTime, &valsz),
                                                              "AudioUnitGetProperty - kAudioUnitProperty_CurrentPlayTime");
 
-        // correct for the difference between the input and playback rate
-        double sampleRateRatio = (double)_audioDescription.mSampleRate / (double)_audioControllerRef.audioDescription.mSampleRate;
-        _playhead = (unsigned long)curTime.mSampleTime * sampleRateRatio;
-        _playhead += _locatehead;
+        if (_audioDescription.mSampleRate > 1.0f && _audioControllerRef.audioDescription.mSampleRate > 1.0f) {
+            // correct for the difference between the input and playback rate
+            double sampleRateRatio = (double)_audioDescription.mSampleRate / (double)_audioControllerRef.audioDescription.mSampleRate;
+            if (curTime.mSampleTime < 0.0f) // http://lists.apple.com/archives/coreaudio-api/2008/May/msg00143.html
+                _playhead = 0;
+            else
+                _playhead = (unsigned long)curTime.mSampleTime * sampleRateRatio;
+            _playhead += _locatehead;
+        }
     }
 
-    if (_audioDescription.mSampleRate > 1.0f && _audioControllerRef.audioDescription.mSampleRate > 1.0f) {
+    if (_audioDescription.mSampleRate > 1.0f) {
         return (double)_playhead / (double)_audioDescription.mSampleRate;
     }
 
